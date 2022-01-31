@@ -1,0 +1,61 @@
+package main
+
+import (
+	"bytes"
+	"log"
+	"time"
+
+	"github.com/streadway/amqp"
+)
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
+}
+
+func main() {
+	conn, err := amqp.Dial("amqp://user:password@localhost:5672")
+	failOnError(err, "Failed to connecto to RabbitMQ")
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	failOnError(err, "Failed to open a channel")
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		"hello",
+		true,
+		false,
+		false,
+		false,
+		nil)
+	failOnError(err, "Failed to declare a queue")
+
+	ch.Qos(1, 0, false)
+
+	msgs, err := ch.Consume(
+		q.Name,
+		"",
+		false,
+		false,
+		false,
+		false,
+		nil)
+	failOnError(err, "Failed to register a consumer")
+
+	forever := make(chan bool)
+
+	go func() {
+		for d := range msgs {
+			log.Printf("received a message: %s", d.Body)
+			dotCount := bytes.Count(d.Body, []byte("."))
+			t := time.Duration(dotCount)
+			time.Sleep(t * time.Second)
+			log.Printf("- Done")
+			d.Ack(false)
+		}
+	}()
+	log.Println(" [*] Waiting for messages. To exit press CTRL+C")
+	<-forever
+}

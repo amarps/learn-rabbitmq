@@ -1,0 +1,4 @@
+2022/01/04 13:41:02 Binding queue amq.gen-iXT3eISuOX5K6KxZtCSo-g to exchange logs_direct with routing key warning
+2022/01/04 13:41:02 Binding queue amq.gen-iXT3eISuOX5K6KxZtCSo-g to exchange logs_direct with routing key error
+2022/01/04 13:41:02  [*] Waiting for logs. To exit press CTRL+C
+signal: interrupt
